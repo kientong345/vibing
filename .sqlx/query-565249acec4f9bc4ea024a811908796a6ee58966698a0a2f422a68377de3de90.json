@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT vb.vibe_id AS vibe_id, vb.name AS name, vb.vibe_group_id AS vibe_group_id\n            FROM vibes AS vb\n            JOIN vibe_groups AS vg ON vb.vibe_group_id = vg.vibe_group_id\n            WHERE vg.vibe_group_id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "vibe_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "vibe_group_id",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "565249acec4f9bc4ea024a811908796a6ee58966698a0a2f422a68377de3de90"
+}

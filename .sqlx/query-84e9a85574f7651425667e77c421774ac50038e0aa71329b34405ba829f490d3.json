@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO vibes (name, vibe_group_id)\n            VALUES (?, ?)\n            RETURNING vibe_id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "vibe_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "84e9a85574f7651425667e77c421774ac50038e0aa71329b34405ba829f490d3"
+}

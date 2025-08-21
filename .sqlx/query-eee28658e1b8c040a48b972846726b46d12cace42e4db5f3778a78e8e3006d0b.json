@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            DELETE FROM track_vibes\n            WHERE track_id = ? AND vibe_id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "eee28658e1b8c040a48b972846726b46d12cace42e4db5f3778a78e8e3006d0b"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT vibe_group_id, name\n            FROM vibe_groups\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "vibe_group_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "f69af75511f7474a66cb589fc927fcd39bfb706a559de9372468b43df1b94036"
+}

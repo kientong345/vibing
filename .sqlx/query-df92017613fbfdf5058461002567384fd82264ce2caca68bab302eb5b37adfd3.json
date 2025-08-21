@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            DELETE FROM vibe_groups\n            WHERE vibe_group_id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "df92017613fbfdf5058461002567384fd82264ce2caca68bab302eb5b37adfd3"
+}

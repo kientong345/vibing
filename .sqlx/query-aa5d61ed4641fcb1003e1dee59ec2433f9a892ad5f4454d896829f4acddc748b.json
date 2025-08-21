@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT vibe_id, name, vibe_group_id\n            FROM vibes\n            WHERE vibe_id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "vibe_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "vibe_group_id",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "aa5d61ed4641fcb1003e1dee59ec2433f9a892ad5f4454d896829f4acddc748b"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE vibes\n            SET name = ?\n            WHERE vibe_id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "4605f31180223d98022ccee8c479c7d08485c614ea97736fd886e17ab5fad5fb"
+}

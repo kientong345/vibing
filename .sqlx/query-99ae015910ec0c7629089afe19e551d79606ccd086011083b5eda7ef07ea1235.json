@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE vibe_groups\n            SET name = ?\n            WHERE vibe_group_id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "99ae015910ec0c7629089afe19e551d79606ccd086011083b5eda7ef07ea1235"
+}
