@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            DELETE FROM track_pointers\n            WHERE track_id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "97e1ed531f57682ff269c92ae4d5bfcab9b8296e6b53c36aad839cb81a1c7927"
+}

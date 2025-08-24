@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT tv.track_id AS track_id, t.path AS path\n            FROM track_pointers AS t\n            JOIN track_vibes AS tv ON t.track_id = tv.track_id\n            WHERE tv.vibe_id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "track_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "path",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "1eb61e0509765033008789ee2b9986f2239975bf7fe093f872448799ff3678e6"
+}

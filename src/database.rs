@@ -15,12 +15,6 @@ pub struct Vibe {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
-pub struct VibeDetail {
-    pub vibe_name: String,
-    pub group_name: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct TrackPointer {
     pub track_id: i64,
     pub path: String,
@@ -169,18 +163,16 @@ impl Mp3Database {
 
     // CREATE VIBE
     pub async fn add_vibe(&self, name: &str, vibe_group_id: i64) -> Result<i64, sqlx::Error> {
-        let id = sqlx::query!(
+        let record = sqlx::query!(
             "
             INSERT INTO vibes (name, vibe_group_id)
             VALUES (?, ?)
             RETURNING vibe_id
             ", name, vibe_group_id)
             .fetch_one(&self.pool)
-            .await?
-            .vibe_id
-            .unwrap();
-        
-        Ok(id)
+            .await?;
+
+        record.vibe_id.ok_or(sqlx::Error::RowNotFound)
     }
 
     // READ VIBE
@@ -246,20 +238,19 @@ impl Mp3Database {
         Ok(())
     }
 
-    pub async fn get_vibe_details_for_track(&self, track_id: i64) -> Result<Vec<VibeDetail>, sqlx::Error> {
-        sqlx::query_as!(VibeDetail,
+    pub async fn get_vibes_for_track(&self, track_id: i64) -> Result<Vec<Vibe>, sqlx::Error> {
+        sqlx::query_as::<_, Vibe>(
             "
-            SELECT vb.name AS vibe_name, vg.name AS group_name
+            SELECT vb.vibe_id AS vibe_id, vb.name AS name, vb.vibe_group_id AS vibe_group_id
             FROM track_vibes AS tv
-            JOIN vibes AS vb ON tv.vibe_id = vb.vibe_id
-            JOIN vibe_groups AS vg ON vb.vibe_group_id = vg.vibe_group_id
+            JOIN vibes AS vb ON vb.vibe_id = tv.vibe_id
             WHERE tv.track_id = ?
-            ", track_id)
+            ").bind(track_id)
             .fetch_all(&self.pool)
             .await
     }
 
-    pub async fn get_tracks_by_vibe(&self, vibe_id: &str) -> Result<Vec<TrackPointer>, sqlx::Error> {
+    pub async fn get_tracks_by_vibe(&self, vibe_id: i64) -> Result<Vec<TrackPointer>, sqlx::Error> {
         sqlx::query_as!(TrackPointer,
             "
             SELECT tv.track_id AS track_id, t.path AS path
@@ -274,10 +265,9 @@ impl Mp3Database {
     pub async fn get_vibes_in_group(&self, vibe_group_id: i64) -> Result<Vec<Vibe>, sqlx::Error> {
         sqlx::query_as!(Vibe,
             "
-            SELECT vb.vibe_id AS vibe_id, vb.name AS name, vb.vibe_group_id AS vibe_group_id
-            FROM vibes AS vb
-            JOIN vibe_groups AS vg ON vb.vibe_group_id = vg.vibe_group_id
-            WHERE vg.vibe_group_id = ?
+            SELECT vibe_id, name, vibe_group_id
+            FROM vibes
+            WHERE vibe_group_id = ?
             ", vibe_group_id)
             .fetch_all(&self.pool)
             .await

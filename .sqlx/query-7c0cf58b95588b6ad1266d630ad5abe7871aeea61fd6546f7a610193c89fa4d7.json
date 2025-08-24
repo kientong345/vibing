@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n            SELECT vb.vibe_id AS vibe_id, vb.name AS name, vb.vibe_group_id AS vibe_group_id\n            FROM vibes AS vb\n            JOIN vibe_groups AS vg ON vb.vibe_group_id = vg.vibe_group_id\n            WHERE vg.vibe_group_id = ?\n            ",
+  "query": "\n            SELECT vibe_id, name, vibe_group_id\n            FROM vibes\n            WHERE vibe_group_id = ?\n            ",
   "describe": {
     "columns": [
       {
@@ -28,5 +28,5 @@
       false
     ]
   },
-  "hash": "565249acec4f9bc4ea024a811908796a6ee58966698a0a2f422a68377de3de90"
+  "hash": "7c0cf58b95588b6ad1266d630ad5abe7871aeea61fd6546f7a610193c89fa4d7"
 }

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO track_pointers (path)\n            VALUES (?)\n            RETURNING track_id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "track_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "84104fafb65cc010a91853fa5df7f6112568ec402b3586ec71808d9d69496aa5"
+}

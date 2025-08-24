@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT track_id, path\n            FROM track_pointers\n            WHERE track_id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "track_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "path",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "dbf65cbd3e593eb1cfc3d46373ad27df6ad440ff0661b48b1f1aa8373bd93c20"
+}

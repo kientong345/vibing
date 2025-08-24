@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE track_pointers\n            SET path = ?\n            WHERE track_id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "7c801e10f42d2ce4c6618f5461a85a7a9f81c9c21c79c449ce3e68022cff556d"
+}
