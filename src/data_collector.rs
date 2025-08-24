@@ -156,6 +156,7 @@ impl WeatherData {
             "Moderate or heavy rain with thunder" => Weather::Stormy(temp),
             "Patchy light snow with thunder" => Weather::Stormy(temp),
             "Moderate or heavy snow with thunder" => Weather::Stormy(temp),
+            "Patchy rain nearby" => Weather::Rainy(temp),
             _ => Weather::Default(temp),
         }
     }
