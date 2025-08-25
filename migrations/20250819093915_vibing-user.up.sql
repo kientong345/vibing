@@ -33,3 +33,31 @@ VALUES ("seasonal"),
        ("mood"),
        ("event")
 ;
+
+INSERT INTO vibes (name, vibe_group_id)
+VALUES ("spring", 1),
+       ("summer", 1),
+       ("autumn", 1),
+       ("winter", 1),
+       ("rain", 2),
+       ("sunny", 2),
+       ("morning", 3),
+       ("night", 3)
+;
+
+INSERT INTO track_pointers (path)
+VALUES ("/home/kt345/Documents/my_workspace/vibing/resource/Glorious_morning.mp3"),
+       ("/home/kt345/Documents/my_workspace/vibing/resource/MorningRain.mp3"),
+       ("/home/kt345/Documents/my_workspace/vibing/resource/Ocean.mp3"),
+       ("/home/kt345/Documents/my_workspace/vibing/resource/Rain.mp3"),
+       ("/home/kt345/Documents/my_workspace/vibing/resource/TownNight.mp3")
+;
+
+INSERT INTO track_vibes (track_id, vibe_id)
+VALUES (1, 7),
+       (2, 7),
+       (2, 5),
+       (3, 2),
+       (4, 5),
+       (5, 8)
+;
