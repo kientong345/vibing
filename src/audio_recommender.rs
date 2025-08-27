@@ -13,7 +13,7 @@ impl Recommender {
         Self { database }
     }
 
-    pub async fn get_track(&self) -> Option<TrackHeader> {
+    pub async fn get_track(&self) -> Vec<TrackHeader> {
         let time = TimeData::get_time();
         let season = TimeData::get_season();
         let weather = WeatherData::get_weather().await;
@@ -24,12 +24,7 @@ impl Recommender {
         filtered_tracks.append(&mut self.get_tracks_by_season(season).await);
         filtered_tracks.append(&mut self.get_tracks_by_weather(weather).await);
 
-        let result = get_most_matched_from(&filtered_tracks);
-        if let Some(track) = result {
-            Some(track.clone())
-        } else {
-            None
-        }
+        Self::get_most_matched_from(&filtered_tracks)
     }
 
     async fn get_tracks_by_time(&self, time: TimePeriod) -> Vec<TrackHeader> {
@@ -81,30 +76,17 @@ impl Recommender {
             .unwrap_or(Vec::new())
     }
 
+    fn get_most_matched_from(slice: &[TrackHeader]) -> Vec<TrackHeader> {
+        let mut counts = std::collections::HashMap::new();
+        for track in slice {
+            *counts.entry(track.clone()).or_insert(0) += 1;
+        }
+
+        let mut sorted_tracks: Vec<_> = counts.into_iter().collect();
+        sorted_tracks.sort_by(|a, b| b.1.cmp(&a.1));
+
+        sorted_tracks.into_iter().map(|(track, _)| track).collect()
+    }
+
     
-}
-
-pub fn get_most_matched_from<T: PartialEq>(slice: &[T]) -> Option<&T> {
-    if slice.is_empty() {
-        return None;
-    }
-
-    let mut most_frequent_item = &slice[0];
-    let mut max_count = 0;
-
-    for i in 0..slice.len() {
-        let mut current_count = 0;
-        for j in 0..slice.len() {
-            if slice[i] == slice[j] {
-                current_count += 1;
-            }
-        }
-
-        if current_count > max_count {
-            max_count = current_count;
-            most_frequent_item = &slice[i];
-        }
-    }
-
-    Some(most_frequent_item)
 }

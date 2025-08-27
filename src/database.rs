@@ -1,3 +1,5 @@
+use std::hash::{Hash, Hasher};
+
 use serde::{Deserialize, Serialize};
 use sqlx::{prelude::FromRow, Row, SqlitePool};
 
@@ -14,7 +16,15 @@ impl PartialEq for TrackHeader {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
+impl Eq for TrackHeader {}
+
+impl Hash for TrackHeader {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, FromRow, PartialEq, Eq, Hash)]
 pub struct Vibe {
     pub name: String,
     pub group_name: String

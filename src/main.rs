@@ -29,16 +29,17 @@ async fn main() {
     let season = TimeData::get_season();
     println!("{:?}", season);
 
-    let track = recommender.read().await.get_track().await.expect("no track available");
+    let tracks = recommender.read().await.get_track().await;
 
-    println!("most matched: {:?}", track.path);
+    for track in tracks {
+        println!("now play: {:?} - {:?}", track.path, track.vibes);
+        let mut audio = Audio::new(&track.path);
+        audio.set_volume(0.2);
+        audio.play();
 
-    let mut audio = Audio::new(&track.path);
-
-    audio.set_volume(0.2);
-
-    audio.play();
-
-    sleep(Duration::from_secs(120)).await;
+        while !audio.is_end() {
+            sleep(Duration::from_secs(1)).await;
+        }
+    }
 
 }
