@@ -75,14 +75,14 @@ impl TimeData {
 
     pub fn get_season() -> Season {
         let now = chrono::Local::now();
-        let month = now.month();
-        let day = now.day() as u8;
+        let month = now.month() as u8;
+        let _day = now.day() as u8;
 
         match month {
-            3 | 4 | 5 => Season::Spring(day),
-            6 | 7 | 8 => Season::Summer(day),
-            9 | 10 | 11 => Season::Autumn(day),
-            _ => Season::Winter(day), // 12, 1, 2
+            3 | 4 | 5 => Season::Spring(month),
+            6 | 7 | 8 => Season::Summer(month),
+            9 | 10 | 11 => Season::Autumn(month),
+            _ => Season::Winter(month), // 12, 1, 2
         }
     }
 }

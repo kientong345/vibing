@@ -1,23 +1,29 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{prelude::FromRow, SqlitePool};
+use sqlx::{prelude::FromRow, Row, SqlitePool};
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
-pub struct VibeGroup {
-    pub vibe_group_id: i64,
-    pub name: String,
+pub struct TrackHeader {
+    pub id: i64,
+    pub path: String,
+    pub vibes: Vec<Vibe>
+}
+
+impl PartialEq for TrackHeader {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Vibe {
-    pub vibe_id: i64,
     pub name: String,
-    pub vibe_group_id: i64,
+    pub group_name: String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
-pub struct TrackPointer {
-    pub track_id: i64,
-    pub path: String,
+pub struct VibeGroup {
+    pub name: String,
+    pub vibes: Vec<Vibe>
 }
 
 pub struct Mp3Database {
@@ -46,27 +52,56 @@ impl Mp3Database {
     }
 
     // READ TRACK
-    pub async fn get_track(&self, track_id: i64) -> Result<Option<TrackPointer>, sqlx::Error> {
-        sqlx::query_as!(TrackPointer,
+    pub async fn get_track_header(&self, track_id: i64) -> Result<Option<TrackHeader>, sqlx::Error> {
+        let result = sqlx::query!(
             "
-            SELECT track_id, path
+            SELECT track_id AS id, path
             FROM track_pointers
             WHERE track_id = ?
             ", track_id)
             .fetch_optional(&self.pool)
-            .await
+            .await?;
+            
+        if result.is_none() {
+            return Ok(None);
+        }
+
+        let mut track_header = TrackHeader {
+            id: track_id,
+            path: result.unwrap().path,
+            vibes: Vec::new(),
+        };
+
+        let vibes = self.get_vibes_for_track(track_id).await?;
+
+        for vibe in vibes {
+            track_header.vibes.push(vibe);
+        }
+
+        Ok(Some(track_header))
     }
 
     // READ TRACKS
-    pub async fn get_all_tracks(&self) -> Result<Vec<TrackPointer>, sqlx::Error> {
-        sqlx::query_as!(TrackPointer,
+    pub async fn get_all_tracks(&self) -> Result<Vec<TrackHeader>, sqlx::Error> {
+        let mut track_headers = Vec::new();
+
+        let records = sqlx::query!(
             "
             SELECT track_id, path
             FROM track_pointers
             ORDER BY track_id ASC
             ")
             .fetch_all(&self.pool)
-            .await
+            .await?;
+    
+        for record in records {
+            let vibes = self.get_vibes_for_track(record.track_id).await?;
+            track_headers.push(
+                TrackHeader { id: record.track_id, path: record.path, vibes }
+            );
+        }
+
+        Ok(track_headers)
     }
 
     // UPDATE TRACK
@@ -84,7 +119,7 @@ impl Mp3Database {
     }
 
     // DELETE TARCK
-    pub async fn remove_track(self, track_id: i64) -> Result<(), sqlx::Error> {
+    pub async fn remove_track(&self, track_id: i64) -> Result<(), sqlx::Error> {
         sqlx::query!(
             "
             DELETE FROM track_pointers
@@ -112,36 +147,57 @@ impl Mp3Database {
     }
 
     // READ GROUP
-    pub async fn get_vibe_group(&self, vibe_group_id: i64) -> Result<VibeGroup, sqlx::Error> {
-        sqlx::query_as!(VibeGroup,
+    pub async fn get_vibe_group(&self, name: &str) -> Result<VibeGroup, sqlx::Error> {
+        let record = sqlx::query!(
             "
-            SELECT vibe_group_id, name
+            SELECT name
             FROM vibe_groups
-            WHERE vibe_group_id = ?
-            ", vibe_group_id)
+            WHERE name = ?
+            ", name)
             .fetch_one(&self.pool)
-            .await
+            .await?;
+
+        let mut group = VibeGroup {
+            name: record.name,
+            vibes: Vec::new()
+        };
+
+        let vibes = self.get_vibes_in_group(name).await?;
+
+        group.vibes = vibes;
+
+        Ok(group)
     }
 
     // READ GROUPS
     pub async fn get_all_vibe_groups(&self) -> Result<Vec<VibeGroup>, sqlx::Error> {
-        sqlx::query_as!(VibeGroup,
+        let mut groups = Vec::new();
+        let records = sqlx::query!(
             "
-            SELECT vibe_group_id, name
+            SELECT name
             FROM vibe_groups
             ")
             .fetch_all(&self.pool)
-            .await
+            .await?;
+
+        for record in records {
+            let vibes = self.get_vibes_in_group(&record.name).await?;
+            groups.push(
+                VibeGroup { name: record.name, vibes }
+            );
+        }
+
+        Ok(groups)
     }
 
     // UPDATE GROUP
-    pub async fn change_vibe_group_name(&self, vibe_group_id: i64, name: &str) -> Result<(), sqlx::Error> {
+    pub async fn change_vibe_group_name(&self, old_name: &str, new_name: &str) -> Result<(), sqlx::Error> {
         sqlx::query!(
             "
             UPDATE vibe_groups
             SET name = ?
-            WHERE vibe_group_id = ?
-            ", name, vibe_group_id)
+            WHERE name = ?
+            ", new_name, old_name)
             .execute(&self.pool)
             .await?;
 
@@ -149,12 +205,12 @@ impl Mp3Database {
     }
 
     // DELETE GROUP
-    pub async fn remove_vibe_group(&self, vibe_group_id: i64) -> Result<(), sqlx::Error> {
+    pub async fn remove_vibe_group(&self, name: &str) -> Result<(), sqlx::Error> {
         sqlx::query!(
             "
             DELETE FROM vibe_groups
-            WHERE vibe_group_id = ?
-            ", vibe_group_id)
+            WHERE name = ?
+            ", name)
             .execute(&self.pool)
             .await?;
 
@@ -162,39 +218,53 @@ impl Mp3Database {
     }
 
     // CREATE VIBE
-    pub async fn add_vibe(&self, name: &str, vibe_group_id: i64) -> Result<i64, sqlx::Error> {
-        let record = sqlx::query!(
+    pub async fn add_vibe(&self, name: &str, group_name: &str) -> Result<i64, sqlx::Error> {
+        let group_id_result = sqlx::query!(
             "
-            INSERT INTO vibes (name, vibe_group_id)
-            VALUES (?, ?)
-            RETURNING vibe_id
-            ", name, vibe_group_id)
-            .fetch_one(&self.pool)
+            SELECT vibe_group_id AS id
+            FROM vibe_groups
+            WHERE name = ?
+            ", group_name)
+            .fetch_optional(&self.pool)
             .await?;
 
-        record.vibe_id.ok_or(sqlx::Error::RowNotFound)
+        if let Some(group_id_record) = group_id_result {
+            let group_id = group_id_record.id;
+            let record = sqlx::query!(
+                "
+                INSERT INTO vibes (name, vibe_group_id)
+                VALUES (?, ?)
+                RETURNING vibe_id
+                ", name, group_id)
+                .fetch_one(&self.pool)
+                .await?;
+            Ok(record.vibe_id.unwrap())
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
     }
 
     // READ VIBE
-    pub async fn get_vibe(&self, vibe_id: i64) -> Result<Vibe, sqlx::Error> {
+    pub async fn get_vibe(&self, name: &str) -> Result<Vibe, sqlx::Error> {
         sqlx::query_as!(Vibe,
             "
-            SELECT vibe_id, name, vibe_group_id
-            FROM vibes
-            WHERE vibe_id = ?
-            ", vibe_id)
+            SELECT vb.name AS name, vg.name AS group_name
+            FROM vibes AS vb
+            JOIN vibe_groups AS vg ON vb.vibe_group_id = vg.vibe_group_id
+            WHERE vb.name = ?
+            ", name)
             .fetch_one(&self.pool)
             .await
     }
 
     // UPDATE VIBE
-    pub async fn change_vibe_name(&self, vibe_id: i64, name: &str) -> Result<(), sqlx::Error> {
+    pub async fn change_vibe_name(&self, old_name: &str, new_name: &str) -> Result<(), sqlx::Error> {
         sqlx::query!(
             "
             UPDATE vibes
             SET name = ?
-            WHERE vibe_id = ?
-            ", name, vibe_id)
+            WHERE name = ?
+            ", new_name, old_name)
             .execute(&self.pool)
             .await?;
 
@@ -202,19 +272,32 @@ impl Mp3Database {
     }
 
     // DELETE VIBE
-    pub async fn remove_vibe(&self, vibe_id: i64) -> Result<(), sqlx::Error> {
+    pub async fn remove_vibe(&self, name: &str) -> Result<(), sqlx::Error> {
         sqlx::query!(
             "
             DELETE FROM vibes
-            WHERE vibe_id = ?
-            ", vibe_id)
+            WHERE name = ?
+            ", name)
             .execute(&self.pool)
             .await?;
 
         Ok(())
     }
 
-    pub async fn associate_vibe_with_track(&self, track_id: i64, vibe_id: i64) -> Result<(), sqlx::Error> {
+    pub async fn associate_vibe_with_track(&self, track_id: i64, vibe_name: &str) -> Result<(), sqlx::Error> {
+        let vibe_id = sqlx::query!(
+            "
+            SELECT vibe_id
+            FROM vibes
+            WHERE name = ?
+            ", vibe_name)
+            .fetch_one(&self.pool)
+            .await?
+            .vibe_id;
+
+        if vibe_id.is_none() { return Ok(()); } // it's not OK!
+        let vibe_id = vibe_id.unwrap();
+
         sqlx::query!(
             "
             INSERT OR IGNORE INTO track_vibes (track_id, vibe_id)
@@ -226,7 +309,20 @@ impl Mp3Database {
         Ok(())
     }
 
-    pub async fn disassociate_vibe_with_track(&self, track_id: i64, vibe_id: i64) -> Result<(), sqlx::Error> {
+    pub async fn disassociate_vibe_with_track(&self, track_id: i64, vibe_name: &str) -> Result<(), sqlx::Error> {
+        let vibe_id = sqlx::query!(
+            "
+            SELECT vibe_id
+            FROM vibes
+            WHERE name = ?
+            ", vibe_name)
+            .fetch_one(&self.pool)
+            .await?
+            .vibe_id;
+
+        if vibe_id.is_none() { return Ok(()); } // it's not OK!
+        let vibe_id = vibe_id.unwrap();
+
         sqlx::query!(
             "
             DELETE FROM track_vibes
@@ -239,38 +335,66 @@ impl Mp3Database {
     }
 
     pub async fn get_vibes_for_track(&self, track_id: i64) -> Result<Vec<Vibe>, sqlx::Error> {
-        sqlx::query_as::<_, Vibe>(
+        Ok(sqlx::query_as!(Vibe,
             "
-            SELECT vb.vibe_id AS vibe_id, vb.name AS name, vb.vibe_group_id AS vibe_group_id
+            SELECT vb.name AS name, vg.name AS group_name
             FROM track_vibes AS tv
             JOIN vibes AS vb ON vb.vibe_id = tv.vibe_id
+            JOIN vibe_groups AS vg ON vb.vibe_group_id = vg.vibe_group_id
             WHERE tv.track_id = ?
-            ").bind(track_id)
+            ", track_id)
             .fetch_all(&self.pool)
-            .await
+            .await?)
     }
 
-    pub async fn get_tracks_by_vibe(&self, vibe_id: i64) -> Result<Vec<TrackPointer>, sqlx::Error> {
-        sqlx::query_as!(TrackPointer,
-            "
-            SELECT tv.track_id AS track_id, t.path AS path
-            FROM track_pointers AS t
-            JOIN track_vibes AS tv ON t.track_id = tv.track_id
-            WHERE tv.vibe_id = ?
-            ", vibe_id)
-            .fetch_all(&self.pool)
-            .await
-    }
-
-    pub async fn get_vibes_in_group(&self, vibe_group_id: i64) -> Result<Vec<Vibe>, sqlx::Error> {
+    pub async fn get_vibes_in_group(&self, name: &str) -> Result<Vec<Vibe>, sqlx::Error> {
         sqlx::query_as!(Vibe,
             "
-            SELECT vibe_id, name, vibe_group_id
-            FROM vibes
-            WHERE vibe_group_id = ?
-            ", vibe_group_id)
+            SELECT vb.name AS name, vg.name AS group_name
+            FROM vibes AS vb
+            JOIN vibe_groups AS vg ON vb.vibe_group_id = vg.vibe_group_id
+            WHERE vg.name = ?
+            ", name)
             .fetch_all(&self.pool)
             .await
+    }
+
+    pub async fn get_tracks_by_vibes(&self, vibe_names: &[&str]) -> Result<Vec<TrackHeader>, sqlx::Error> {
+        if vibe_names.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let mut tracks = Vec::new();
+
+        let query_str = format!(
+            "
+            SELECT tp.track_id AS id, tp.path AS path
+            FROM track_pointers AS tp
+            INNER JOIN track_vibes AS tv ON tp.track_id = tv.track_id
+            INNER JOIN vibes AS vb on tv.vibe_id = vb.vibe_id
+            WHERE vb.name IN ({})
+            GROUP BY tp.track_id, tp.path
+            HAVING COUNT(DISTINCT vb.name) = {}
+            ",
+            vibe_names.iter().map(|_| "?").collect::<Vec<_>>().join(","),
+            vibe_names.len()
+        );
+
+        let mut query = sqlx::query(&query_str);
+        for name in vibe_names {
+            query = query.bind(name);
+        }
+
+        let tracks_db = query.fetch_all(&self.pool).await?;
+
+        for track in tracks_db {
+            let vibes = self.get_vibes_for_track(track.get("id")).await?;
+            tracks.push(
+                TrackHeader { id: track.get("id"), path: track.get("path"), vibes }
+            );
+        }
+
+        Ok(tracks)
     }
 
 }

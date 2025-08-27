@@ -79,9 +79,7 @@ impl Audio {
 
     pub fn play(&mut self) {
         if self.sink.is_paused() {
-            println!("cp1");
             self.sink.play();
-            println!("cp2");
             self.state = State::Playing;
             if self.playback_start_time.is_none() {
                 self.playback_start_time = Some(Instant::now());
