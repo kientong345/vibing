@@ -50,7 +50,8 @@ VALUES ("/home/kt345/Documents/my_workspace/vibing/resource/Glorious_morning.mp3
        ("/home/kt345/Documents/my_workspace/vibing/resource/MorningRain.mp3"),
        ("/home/kt345/Documents/my_workspace/vibing/resource/Ocean.mp3"),
        ("/home/kt345/Documents/my_workspace/vibing/resource/Rain.mp3"),
-       ("/home/kt345/Documents/my_workspace/vibing/resource/TownNight.mp3")
+       ("/home/kt345/Documents/my_workspace/vibing/resource/TownNight.mp3"),
+       ("/home/kt345/Documents/my_workspace/vibing/resource/Summertime.mp3")
 ;
 
 INSERT INTO track_vibes (track_id, vibe_id)
@@ -59,5 +60,7 @@ VALUES (1, 7),
        (2, 5),
        (3, 2),
        (4, 5),
-       (5, 8)
+       (5, 8),
+       (6, 2),
+       (6, 6)
 ;
