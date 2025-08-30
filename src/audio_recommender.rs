@@ -20,9 +20,9 @@ impl Recommender {
 
         let mut filtered_tracks = Vec::new();
 
+        filtered_tracks.append(&mut self.get_tracks_by_weather(weather).await);
         filtered_tracks.append(&mut self.get_tracks_by_time(time).await);
         filtered_tracks.append(&mut self.get_tracks_by_season(season).await);
-        filtered_tracks.append(&mut self.get_tracks_by_weather(weather).await);
 
         Self::get_most_matched_from(&filtered_tracks)
     }

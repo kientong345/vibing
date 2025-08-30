@@ -27,11 +27,11 @@ CREATE TABLE IF NOT EXISTS track_vibes (
 );
 
 INSERT INTO vibe_groups (name)
-VALUES ("seasonal"),
-       ("weather"),
-       ("daytime"),
-       ("mood"),
-       ("event")
+VALUES ("seasonal"), -- id = 1
+       ("weather"),  -- id = 2
+       ("daytime"),  -- id = 3
+       ("mood"),     -- id = 4
+       ("event")     -- id = 5
 ;
 
 INSERT INTO vibes (name, vibe_group_id)
@@ -39,9 +39,19 @@ VALUES ("spring", 1),
        ("summer", 1),
        ("autumn", 1),
        ("winter", 1),
-       ("rain", 2),
        ("sunny", 2),
+       ("rainy", 2),
+       ("windy", 2),
+       ("cloudy", 2),
+       ("stormy", 2),
+       ("hooty", 2),
+       ("coldy", 2),
+       ("dawn", 3),
        ("morning", 3),
+       ("noon", 3),
+       ("afternoon", 3),
+       ("dusk", 3),
+       ("evening", 3),
        ("night", 3)
 ;
 
@@ -54,13 +64,43 @@ VALUES ("/home/kt345/Documents/my_workspace/vibing/resource/Glorious_morning.mp3
        ("/home/kt345/Documents/my_workspace/vibing/resource/Summertime.mp3")
 ;
 
+-- insert sample
 INSERT INTO track_vibes (track_id, vibe_id)
-VALUES (1, 7),
-       (2, 7),
-       (2, 5),
-       (3, 2),
-       (4, 5),
-       (5, 8),
-       (6, 2),
-       (6, 6)
+VALUES
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/Glorious_morning.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "morning")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/MorningRain.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "morning")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/MorningRain.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "rainy")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/Ocean.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "summer")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/Rain.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "rainy")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/TownNight.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "evening")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/TownNight.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "night")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/Summertime.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "summer")
+    ),
+    (
+        (SELECT track_id FROM track_pointers WHERE path LIKE '%/Summertime.mp3'),
+        (SELECT vibe_id FROM vibes WHERE name = "sunny")
+    )
 ;
